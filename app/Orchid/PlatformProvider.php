@@ -39,27 +39,37 @@ class PlatformProvider extends OrchidServiceProvider
 //                ->title('Navigation')
 //                ->route(config('platform.index')),
 
-            Menu::make('Sample Screen')
-                ->icon('bs.collection')
-                ->route('platform.example')
-                ->badge(fn () => 6),
+//            Menu::make('Sample Screen')
+//                ->icon('bs.collection')
+//                ->route('platform.example')
+//                ->badge(fn() => 6),
 
-//            Menu::make('Form Elements')
-//                ->icon('bs.card-list')
-//                ->route('platform.example.fields')
-//                ->active('*/examples/form/*'),
+            Menu::make('Form Elements')
+                ->icon('bs.card-list')
+                ->route('platform.example.fields')
+                ->active('*/examples/form/*'),
 
 //            Menu::make('Overview Layouts')
 //                ->icon('bs.window-sidebar')
 //                ->route('platform.example.layouts'),
 
-            Menu::make('Grid System')
-                ->icon('bs.columns-gap')
-                ->route('platform.example.grid'),
+//            Menu::make('Grid System')
+//                ->icon('bs.columns-gap')
+//                ->route('platform.example.grid'),
+
+            Menu::make('Вибірка')
+                ->icon('bs.search')
+                ->title('Моделі')
+                ->route('platform.example.filter'),
+
 
             Menu::make('Спортсмени')
-                ->icon('bs.bar-chart')
+                ->icon('fa.sportsmen')
+                ->title('Моделі')
                 ->route('platform.example.sportsman'),
+            Menu::make('Тренери')
+                ->icon('fa.trainers')
+                ->route('platform.example.trainer'),
 
 //            Menu::make('Cards')
 //                ->icon('bs.card-text')
@@ -88,7 +98,7 @@ class PlatformProvider extends OrchidServiceProvider
                 ->icon('bs.box-arrow-up-right')
                 ->url('https://github.com/orchidsoftware/platform/blob/master/CHANGELOG.md')
                 ->target('_blank')
-                ->badge(fn () => Dashboard::version(), Color::DARK),
+                ->badge(fn() => Dashboard::version(), Color::DARK),
         ];
     }
 

@@ -3,27 +3,40 @@
 namespace App\Orchid\Screens\Examples;
 
 use App\Models\Category\CategorySportsman;
+use App\Models\Class\BoxFederation;
 use App\Orchid\Layouts\ChartsLayout;
 use App\Orchid\Layouts\Examples\ChartBarExample;
-use App\Orchid\Layouts\Examples\ChartLineExample;
-use App\Orchid\Layouts\Examples\ChartPercentageExample;
-use App\Orchid\Layouts\Examples\ChartPieExample;
-use App\Orchid\Layouts\SubtractListener;
+use App\Orchid\Layouts\Examples\ExampleElements;
+use App\Orchid\Layouts\User\UserEditEddddLayout;
+use App\Orchid\Layouts\User\UserEditLayout;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use JetBrains\PhpStorm\NoReturn;
 use Orchid\Platform\Models\User;
+use Orchid\Screen\Action;
 use Orchid\Screen\Actions\Button;
-use Orchid\Screen\Components\Cells\Currency;
-use Orchid\Screen\Components\Cells\DateTimeSplit;
+use Orchid\Screen\Actions\ModalToggle;
+use Orchid\Screen\Fields\CheckBox;
+use Orchid\Screen\Fields\DateRange;
+use Orchid\Screen\Fields\Group;
+use Orchid\Screen\Fields\Input;
+use Orchid\Screen\Fields\Label;
+use Orchid\Screen\Fields\Password;
+use Orchid\Screen\Fields\Radio;
+use Orchid\Screen\Fields\Select;
+use Orchid\Screen\Fields\TextArea;
 use Orchid\Screen\Repository;
 use Orchid\Screen\Screen;
-use Orchid\Screen\Sight;
 use Orchid\Screen\TD;
 use Orchid\Support\Color;
+use Orchid\Support\Facades\Alert;
 use Orchid\Support\Facades\Layout;
+use Orchid\Support\Facades\Toast;
 
-class ExampleSportsmanScreen extends Screen
+class ExampleFilterResultScreen extends Screen
 {
+
     /**
      * Fetch data to be displayed on the screen.
      *
@@ -75,7 +88,7 @@ class ExampleSportsmanScreen extends Screen
         })->map(function ($group) {
             return $group->count();
         })->toArray();
-        foreach ($grouped_by_city as $key=>$item) {
+        foreach ($grouped_by_city as $key => $item) {
 
             $table_city[] = new Repository(['city' => $key, 'name' => $item]);
 
@@ -126,8 +139,8 @@ class ExampleSportsmanScreen extends Screen
             ],
 
             'age' => [[
-                'values' => $grouped_by_age->values()->toArray(), // Получаем только значения (количество спортсменов)
-                'labels' => $grouped_by_age->keys()->toArray(), // Получаем только метки (группы возрастов)
+                'values' => $grouped_by_age->values()->toArray(),
+                'labels' => $grouped_by_age->keys()->toArray(),
             ]],
             'charts' => [
                 [
@@ -151,7 +164,7 @@ class ExampleSportsmanScreen extends Screen
                     'labels' => ['12am-3am', '3am-6am', '6am-9am', '9am-12pm', '12pm-3pm', '3pm-6pm', '6pm-9pm'],
                 ],
             ],
-            'table'   => $table_city,
+            'table' => $table_city,
         ];
     }
 
@@ -160,7 +173,7 @@ class ExampleSportsmanScreen extends Screen
      */
     public function name(): ?string
     {
-        return 'Спортсмени';
+        return 'Результати вибірки';
     }
 
     /**
@@ -168,13 +181,13 @@ class ExampleSportsmanScreen extends Screen
      */
     public function description(): ?string
     {
-        return 'A comprehensive guide to creating and customizing various types of charts, including bar, line, and pie charts.';
+        return 'Тут показані результати по параметрам які передали на попередній сторінці';
     }
 
     /**
      * The screen's action buttons.
      *
-     * @return \Orchid\Screen\Action[]
+     * @return Action[]
      */
     public function commandBar(): iterable
     {
@@ -184,13 +197,20 @@ class ExampleSportsmanScreen extends Screen
     /**
      * The screen's layout elements.
      *
-     * @return string[]|\Orchid\Screen\Layout[]
-     * @throws \Throwable
-     *
+     * @return \Orchid\Screen\Layout[]
      */
-    public function layout(): iterable
+    #[NoReturn] public function layout(): iterable
     {
+        $request = request();
+        if ($request->has('find-federation') && $request->input('find-federation') === '1') {
+            $federation = new BoxFederation();
+            if ($request->has('federation') && $federation_id = $request->input('federation') !== 'all') {
+                $federation = $federation->where('id', $federation_id);
+            }
+        }
+        dd($request->input());
         return [
+
             Layout::split([
                 ChartsLayout::make('gender', 'Стать'),
                 ChartBarExample::make('age', 'Графік віку'),
@@ -198,9 +218,6 @@ class ExampleSportsmanScreen extends Screen
 
 
             ChartBarExample::make('city', 'Графік городів'),
-
-//            ChartLineExample::make('charts', 'Actions with a Tweet')
-//                ->description('The total number of interactions a user has with a tweet. This includes all clicks on any links in the tweet (including hashtags, links, avatar, username, and expand button), retweets, replies, likes, and additions to the read list.'),
 
             Layout::table('table', [
                 TD::make('city', 'Город')

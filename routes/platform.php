@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Route;
 use Tabuna\Breadcrumbs\Trail;
 
 use App\Orchid\Screens\Examples\ExampleSportsmanScreen;
+use App\Orchid\Screens\Examples\ExampleFilterScreen;
+use App\Orchid\Screens\Examples\ExampleFilterResultScreen;
 
 /*
 |--------------------------------------------------------------------------
@@ -101,7 +103,18 @@ Route::screen('/examples/form/actions', ExampleActionsScreen::class)->name('plat
 Route::screen('/examples/layouts', ExampleLayoutsScreen::class)->name('platform.example.layouts');
 Route::screen('/examples/grid', ExampleGridScreen::class)->name('platform.example.grid');
 Route::screen('/examples/charts', ExampleChartsScreen::class)->name('platform.example.charts');
-Route::screen('/examples/charts', ExampleSportsmanScreen::class)->name('platform.example.sportsman');
+
+
 Route::screen('/examples/cards', ExampleCardsScreen::class)->name('platform.example.cards');
+
+
+
+
+Route::screen('/examples/filter', ExampleFilterScreen::class)->name('platform.example.filter');
+Route::screen('/examples/sportsman', ExampleSportsmanScreen::class)->name('platform.example.sportsman');
+Route::screen('/examples/trainer', ExampleSportsmanScreen::class)->name('platform.example.trainer');
+
+
+Route::screen('/examples/filter/filter-result', ExampleFilterResultScreen::class)->name('platform.example.filter-result');
 
 //Route::screen('idea', Idea::class, 'platform.screens.idea');

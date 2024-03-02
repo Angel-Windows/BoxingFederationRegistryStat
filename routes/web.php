@@ -16,3 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+//Route::post('/admin/examples/filter/buttonClickTest', function (Request $request) {
+//    dd($request);
+//    return view('welcome');
+//})->name('buttonClickTest');
