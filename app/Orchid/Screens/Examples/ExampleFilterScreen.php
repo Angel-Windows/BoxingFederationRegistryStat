@@ -95,12 +95,11 @@ class ExampleFilterScreen extends Screen
             if ($dataTypeInput != 'Title'){
                 $weight_category[$key] = $dataTypeInput;
             }
-
         }
 
         $all_federations = BoxFederation::pluck('name', 'id')->toArray();
         $all_sportsman = CategorySportsman::pluck('name', 'id')->toArray();
-        $all_trainer = CategoryTrainer::pluck('name', 'id');
+        $all_trainer = CategoryTrainer::pluck('name', 'id')->toArray();
         $all_judge = CategoryJudge::pluck('name', 'id');
 
 
@@ -129,7 +128,7 @@ class ExampleFilterScreen extends Screen
                 Select::make('sportsman_id')
                     ->options($this->combinedArray($all_sportsman))
                     ->title('Спортсмени')
-                    ->help('Allow search bots to index'), // radio
+                    ->help('Allow search bots to index'),
 
                 DateRange::make('sportsman_birthday')
                     ->title('Дата народження'),
@@ -151,38 +150,37 @@ class ExampleFilterScreen extends Screen
                         ]
                     )
                     ->empty('Без фільтру')
-                    ->title('Фільтр по статі')
+                    ->title('Фільтр по ваговій категорії')
                     ->help('Виберіть із списку параметр'),
             ])->title('Спортсмени'),
 
             // Trainer
 
             Layout::rows([
-                Switcher::make('free-switch')
-                    ->sendTrueOrFalse()
+                Switcher::make('find-trainer')
                     ->placeholder('Шукати у тренерах'),
-                Select::make('select')
+                Select::make('trainer_id')
                     ->options($this->combinedArray($all_trainer))
-                    ->title('Select tags')
-                    ->help('Allow search bots to index'),
+                    ->title('Тренер')
+                    ->help('Виберіть зі списку тренера'),
             ])->title('Тренери'),
 
             // Judge
             Layout::rows([
-                Switcher::make('free-switch')
-                    ->sendTrueOrFalse()
+                Switcher::make('find-judge')
                     ->placeholder('Шукати у суддях'),
-                DateRange::make('rangeDate')
-                    ->name('test')
-                    ->title('Дата народження'),
-                Select::make('select')
-                    ->options($this->combinedArray($all_judge))
+
+                Select::make('judge-select_qualification')
+                    ->options(
+                        $this->combinedArray($this->DataTypeInputs['judge_qualification']['option'])
+                    )
+                    ->empty('Без фільтру')
                     ->title('Select tags')
                     ->help('Allow search bots to index'),
             ])->title('Судді'),
 
             Layout::rows([
-                Switcher::make('free-switch')
+                Switcher::make('find-sport_institution')
                     ->sendTrueOrFalse()
                     ->placeholder('Шукати у спортивних закладах'),
 

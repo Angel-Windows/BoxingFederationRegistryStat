@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Model;
  * @method static exists()
  * @method static find($id)
  * @method static pluck(string $string, string $string1)
+ * @method where(string $string, mixed $id)
+ * @method get()
+ * @method select(string $string, \Illuminate\Contracts\Database\Query\Expression|\Illuminate\Database\Query\Expression $raw)
  */
 class CategoryJudge extends Model
 {
