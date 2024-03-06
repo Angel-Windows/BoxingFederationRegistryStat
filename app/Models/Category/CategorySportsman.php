@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static whereIn()
  * @method static select(string $string)
  * @method static get()
+ * @method static pluck(string $string, string $string1)
+ * @method whereBetween(string $string, array $array)
  */
 class CategorySportsman extends Model
 {

@@ -108,7 +108,6 @@ class ExampleSportsmanScreen extends Screen
         })->map(function ($group) {
             return $group->count();
         });
-//
         return [
             'city' => [
                 [

@@ -3,14 +3,18 @@
 namespace App\Orchid\Screens\Examples;
 
 use App\Models\Category\CategorySportsman;
+use App\Models\Category\CategoryTrainer;
 use App\Models\Class\BoxFederation;
+use App\Models\Employees\EmployeesFederation;
 use App\Orchid\Layouts\ChartsLayout;
 use App\Orchid\Layouts\Examples\ChartBarExample;
 use App\Orchid\Layouts\Examples\ExampleElements;
 use App\Orchid\Layouts\User\UserEditEddddLayout;
 use App\Orchid\Layouts\User\UserEditLayout;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Validation\Rule;
 use JetBrains\PhpStorm\NoReturn;
 use Orchid\Platform\Models\User;
@@ -33,139 +37,154 @@ use Orchid\Support\Color;
 use Orchid\Support\Facades\Alert;
 use Orchid\Support\Facades\Layout;
 use Orchid\Support\Facades\Toast;
+use Illuminate\Support\Facades\Session;
 
 class ExampleFilterResultScreen extends Screen
 {
+    public function __construct()
+    {
+
+    }
+
+    public function handle(Request $request, ...$arguments)
+    {
+        return parent::handle($request, ...$arguments);
+//        if ($request->filled('find-federation')) {
+//            return parent::handle($request, ...$arguments);
+//        }
+//
+//        return Redirect::route('platform.example.filter');
+    }
+
+    private array $result_query = [];
 
     /**
      * Fetch data to be displayed on the screen.
      *
      * @return array
      */
-    public function query(): iterable
+    public function query()
     {
-        $sportsmen_city = CategorySportsman::select('address')->get();
-
-        $city_arr = [
-            "Київ",
-            "Харків",
-            "Одеса",
-            "Дніпро",
-            "Донецьк",
-            "Запоріжжя",
-            "Львів",
-            "Кривий Ріг",
-            "Миколаїв",
-            "Маріуполь",
-            "Вінниця",
-            "Полтава",
-            "Чернігів",
-            "Черкаси",
-            "Житомир",
-            "Суми",
-            "Рівне",
-            "Кам'янець-Подільський",
-            "Луцьк",
-            "Кременчук",
-            "Івано-Франківськ",
-            "Тернопіль",
-            "Херсон",
-            "Чернівці",
-            "Кропивницький",
-            "Мелітополь",
-            "Бердянськ",
-        ];
-        $table_city = [];
-        $grouped_by_city = $sportsmen_city->map(function ($item) use ($city_arr, &$table_city) {
-            $cityId = json_decode($item->address)->city;
-            if (isset($city_arr[$cityId])) {
-                return $city_arr[$cityId];
-            } else {
-                return "Unknown";
-            }
-        })->groupBy(function ($cityName) {
-            return $cityName;
-        })->map(function ($group) {
-            return $group->count();
-        })->toArray();
-        foreach ($grouped_by_city as $key => $item) {
-
-            $table_city[] = new Repository(['city' => $key, 'name' => $item]);
-
+//        dump(Cache::get('request_filter'));
+        if ($this->result_query) {
+            return $this->result_query;
         }
-//        dd($data, $grouped_by_city, $city_arr);
-        $sportsmen_gender = CategorySportsman::select('gender', DB::raw('count(*) as total'))->groupBy('gender')->pluck('total', 'gender')->toArray();
-        $sportsmen_age = CategorySportsman::select(
-            DB::raw('YEAR(CURRENT_DATE) - YEAR(birthday) - (DATE_FORMAT(CURRENT_DATE, "%m%d") < DATE_FORMAT(birthday, "%m%d")) as age')
-        )
-            ->orderBy('birthday', 'desc')
-            ->get();
+        $return_data = [];
+        $request = request();
+        if (!count($request->input())) {
+            $cached_data = Cache::get('request_filter');
 
-        $grouped_by_age = $sportsmen_age->groupBy(function ($item) {
-            $age = $item->age;
-            if ($age >= 0 && $age <= 6) {
-                return '0-6';
-            } elseif ($age <= 15) {
-                return '7-15';
-            } elseif ($age <= 25) {
-                return '16-25';
-            } elseif ($age <= 45) {
-                return '26-45';
-            } elseif ($age <= 55) {
-                return '46-55';
-            } elseif ($age <= 65) {
-                return '56-65';
-            } else {
-                return '45+';
+            if ($cached_data !== null) {
+                $request = new Request($cached_data);
             }
-        })->map(function ($group) {
-            return $group->count();
-        });
-//
-        return [
-            'city' => [
-                [
-                    'name' => 'city',
-                    'values' => array_values($grouped_by_city),
-                    'labels' => array_keys($grouped_by_city),
-                ],
-            ],
-            'gender' => [
-                [
-                    'name' => 'gender',
-                    'values' => $sportsmen_gender,
-                    'labels' => ['Чоловіки', 'Жінки'],
-                ],
-            ],
+        } else {
+            Cache::delete('request_filter');
+            Cache::remember('request_filter', 10000, static function () use ($request) {
+                return $request->input();
+            });
+        }
 
-            'age' => [[
-                'values' => $grouped_by_age->values()->toArray(),
-                'labels' => $grouped_by_age->keys()->toArray(),
-            ]],
-            'charts' => [
-                [
-                    'name' => 'Some Data',
-                    'values' => [25, 40, 30, 35, 8, 52, 17],
-                    'labels' => ['12am-3am', '3am-6am', '6am-9am', '9am-12pm', '12pm-3pm', '3pm-6pm', '6pm-9pm'],
-                ],
-                [
-                    'name' => 'Another Set',
-                    'values' => [25, 50, -10, 15, 18, 32, 27],
-                    'labels' => ['12am-3am', '3am-6am', '6am-9am', '9am-12pm', '12pm-3pm', '3pm-6pm', '6pm-9pm'],
-                ],
-                [
-                    'name' => 'Yet Another',
-                    'values' => [15, 20, -3, -15, 58, 12, -17],
-                    'labels' => ['12am-3am', '3am-6am', '6am-9am', '9am-12pm', '12pm-3pm', '3pm-6pm', '6pm-9pm'],
-                ],
-                [
-                    'name' => 'And Last',
-                    'values' => [10, 33, -8, -3, 70, 20, -34],
-                    'labels' => ['12am-3am', '3am-6am', '6am-9am', '9am-12pm', '12pm-3pm', '3pm-6pm', '6pm-9pm'],
-                ],
-            ],
-            'table' => $table_city,
+        $more_parameter = [
+            'federation_sportsman_gender' => ['man' => 0, 'woman' => 0],
+            'federation_sportsman_weight_category' => 0,
         ];
+
+        if ($request->filled('find-federation') && $request->input('find-federation') === '1') {
+
+            $federationQuery = BoxFederation::query();
+
+            if ($request->filled('federation') && $request->input('federation') !== 'all') {
+                $federationQuery->where('id', $request->input('federation'));
+            }
+
+            $federations = $federationQuery->get();
+            $return_federation_all_data = ['sportsman' => 0, 'trainer' => 0, 'employees' => 0];
+
+            foreach ($federations as $federation) {
+                $sportsman = new CategorySportsman();
+                if ($request->has('find-sportsman')) {
+
+                    // Sportsman ID
+                    if (($sportsman_id = $request->input('sportsman_id')) !== 'all') {
+                        $sportsman = $sportsman->where('id', $sportsman_id);
+                    }
+
+                    // Birthday
+                    if ($request->has('sportsman_birthday')) {
+                        $sportsman_date = $request->input('sportsman_birthday');
+
+                        $start_date = $sportsman_date['start'] ?? null;
+                        $end_date = $sportsman_date['end'] ?? null;
+
+                        if ($start_date && $end_date) {
+                            $sportsman = $sportsman->whereBetween('birthday', [$start_date, $end_date]);
+                        } elseif ($start_date) {
+                            $sportsman = $sportsman->where('birthday', '>=', $start_date);
+                        } elseif ($end_date) {
+                            $sportsman = $sportsman->where('birthday', '<=', $end_date);
+                        }
+                    }
+
+                    // Gender
+                    if ($request->input('sportsman_gender') != null) {
+                        if (($sportsman_gender = $request->input('sportsman_gender')) !== 'all') {
+                            $sportsman = $sportsman->where('gender', $sportsman_gender);
+                        } else {
+                            $find_gender = true;
+                            $count_man = (clone $sportsman)->where('federation', $federation->id)->where('gender', 0)->count();
+                            $count_woman = (clone $sportsman)->where('federation', $federation->id)->where('gender', 1)->count();
+                            $more_parameter['federation_sportsman_gender']['man'] += $count_man;
+                            $more_parameter['federation_sportsman_gender']['woman'] += $count_woman;
+                            $count_text_gender = $count_man . ' / ' . $count_woman;
+                        }
+                    }
+
+                    // Weight Category
+                    if ($request->input('sportsman_weight_category') != null) {
+                        $sportsman = $sportsman->where('weight_category', $request->input('sportsman_weight_category'));
+                        $count_weight_category = (clone $sportsman)->where('federation', $federation->id)->where('weight_category',  $request->input('sportsman_weight_category'))->count();
+                        $more_parameter['federation_sportsman_weight_category'] += $count_weight_category;
+                    }
+
+                }
+
+                $sportsmanCount = $find_gender ?? $sportsman->where('federation', $federation->id)->count();
+                $trainerCount = CategoryTrainer::where('federation', $federation->id)->count();
+                $employees = EmployeesFederation::where('federation_id', $federation->id)->count();
+
+                if (!($request->has('find-sportsman') && $sportsmanCount === 0)) {
+                    $return_data['federation'][] = new Repository([
+                        'name' => $federation->name,
+                        'sportsman' => $count_text_gender ?? $sportsmanCount,
+                        'trainer' => $trainerCount,
+                        'employees' => $employees
+                    ]);
+
+                    $return_federation_all_data['sportsman'] += $sportsmanCount;
+                    $return_federation_all_data['trainer'] += $trainerCount;
+                    $return_federation_all_data['employees'] += $employees;
+                }
+            }
+            if ($request->has('sportsman_gender') && $request->input('sportsman_gender') === 'all') {
+                $return_data['federation_sportsman_gender'] = [
+                    [
+                        'name' => 'federation_sportsman_gender',
+                        'values' => [$more_parameter['federation_sportsman_gender']['man'], $more_parameter['federation_sportsman_gender']['woman']],
+                        'labels' => ['Чоловіки', 'Жінки'],
+                    ],
+                ];
+            }
+            $return_data['federation_all'] = [
+                [
+                    'name' => 'federation_all',
+                    'values' => [$return_federation_all_data['sportsman'], $return_federation_all_data['trainer'], $return_federation_all_data['employees']],
+                    'labels' => ['Спортсмени', 'Тренери', 'Працівники'],
+                ],
+            ];
+        }
+//        dd($more_parameter, $request->input('sportsman_weight_category'));
+
+        return $this->result_query = $return_data;
     }
 
     /**
@@ -199,32 +218,56 @@ class ExampleFilterResultScreen extends Screen
      *
      * @return \Orchid\Screen\Layout[]
      */
-    #[NoReturn] public function layout(): iterable
+    public function layout(): iterable
     {
-        $request = request();
-        if ($request->has('find-federation') && $request->input('find-federation') === '1') {
-            $federation = new BoxFederation();
-            if ($request->has('federation') && $federation_id = $request->input('federation') !== 'all') {
-                $federation = $federation->where('id', $federation_id);
+
+        $query = $this->query();
+        $return_data = [];
+
+
+        if (array_key_exists('federation', $query)) {
+
+            if (array_key_exists('federation_sportsman_gender', $query)) {
+                $return_data[] =
+                    Layout::block([
+                        Layout::split([
+                            ChartBarExample::make('federation_all', 'Загальна інформація'),
+                            ChartsLayout::make('federation_sportsman_gender', 'Стать'),
+                        ]),
+
+                        Layout::accordion([
+                            'Розгорнути' => Layout::table('federation', [
+                                TD::make('name', 'Федерація')
+                                    ->width('auto'),
+                                TD::make('sportsman', 'Спортсмени (Ч/Ж)')
+                                    ->width('auto'),
+                                TD::make('trainer', 'Тренери')
+                                    ->width('auto'),
+                                TD::make('employees', 'Учасники')
+                                    ->width('auto'),
+                            ])]),
+                    ])->vertical()->title('Федерації');
+
+            } else {
+
+                $return_data[] =
+                    Layout::block([
+                        ChartsLayout::make('federation_all', 'Загальна інформація'),
+                        Layout::accordion([
+                            'Розгорнути' => Layout::table('federation', [
+                                TD::make('name', 'Федерація')
+                                    ->width('auto'),
+                                TD::make('sportsman', 'Спортсмени')
+                                    ->width('auto'),
+                                TD::make('trainer', 'Тренери')
+                                    ->width('auto'),
+                                TD::make('employees', 'Учасники')
+                                    ->width('auto'),
+                            ])]),
+                    ])->vertical()->title('Федерації');
             }
+
         }
-        dd($request->input());
-        return [
-
-            Layout::split([
-                ChartsLayout::make('gender', 'Стать'),
-                ChartBarExample::make('age', 'Графік віку'),
-            ])->ratio('40/60'),
-
-
-            ChartBarExample::make('city', 'Графік городів'),
-
-            Layout::table('table', [
-                TD::make('city', 'Город')
-                    ->width('450'),
-                TD::make('name', 'Кількість')
-                    ->width('450'),
-            ]),
-        ];
+        return $return_data;
     }
 }

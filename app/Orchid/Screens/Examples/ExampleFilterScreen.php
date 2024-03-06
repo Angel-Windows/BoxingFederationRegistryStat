@@ -2,6 +2,9 @@
 
 namespace App\Orchid\Screens\Examples;
 
+use App\Models\Category\CategoryJudge;
+use App\Models\Category\CategorySportsman;
+use App\Models\Category\CategoryTrainer;
 use App\Models\Class\BoxFederation;
 use App\Orchid\Layouts\Examples\ExampleElements;
 use App\Orchid\Layouts\User\UserEditEddddLayout;
@@ -32,6 +35,7 @@ use Orchid\Support\Facades\Toast;
 class ExampleFilterScreen extends Screen
 {
     use DataTypeTrait;
+
     /**
      * Fetch data to be displayed on the screen.
      *
@@ -73,11 +77,33 @@ class ExampleFilterScreen extends Screen
     /**
      * The screen's layout elements.
      *
-     * @return \Orchid\Screen\Layout[]
+     * @return \Orchid\Screen\Layout[]|string[]
      */
+    private function combinedArray($all_array): array
+    {
+        $options = ['all' => 'Всі'];
+        foreach ($all_array as $id => $name) {
+            $options[$id] = $name;
+        }
+        return $options;
+    }
+
     public function layout(): iterable
     {
-        $all_federations = BoxFederation::pluck('name', 'id');
+        $weight_category = [];
+        foreach ($this->DataTypeInputs['weight_category']['option'] as $key=>$dataTypeInput) {
+            if ($dataTypeInput != 'Title'){
+                $weight_category[$key] = $dataTypeInput;
+            }
+
+        }
+
+        $all_federations = BoxFederation::pluck('name', 'id')->toArray();
+        $all_sportsman = CategorySportsman::pluck('name', 'id')->toArray();
+        $all_trainer = CategoryTrainer::pluck('name', 'id');
+        $all_judge = CategoryJudge::pluck('name', 'id');
+
+
         return [
 
             //Federation
@@ -87,10 +113,9 @@ class ExampleFilterScreen extends Screen
                     ->sendTrueOrFalse()
                     ->placeholder('Шукати у федераціях'),
                 Select::make('federation')
-                    ->options([
-                        'all' => 'Всі',
-                        ...$all_federations
-                    ])
+                    ->options(
+                        $this->combinedArray($all_federations)
+                    )
                     ->title('Федерація')
                     ->help('Виберіть із списку федерацію'),
 
@@ -99,36 +124,50 @@ class ExampleFilterScreen extends Screen
             //Sportsman
 
             Layout::rows([
-                Switcher::make('free-switch')
-                    ->sendTrueOrFalse()
+                Switcher::make('find-sportsman')
                     ->placeholder('Шукати у спортсменах'),
-                Select::make('Спортсмени')
-                    ->options([
-                        'index' => 'Всі',
-                        'noindex' => 'аібва віа іі',
-                    ])
+                Select::make('sportsman_id')
+                    ->options($this->combinedArray($all_sportsman))
                     ->title('Спортсмени')
                     ->help('Allow search bots to index'), // radio
 
-
-                DateRange::make('rangeDate')
-                    ->name('test')
+                DateRange::make('sportsman_birthday')
                     ->title('Дата народження'),
 
+                Select::make('sportsman_gender')
+                    ->options([
+                            null => 'Без фільтру',
+                            'all' => 'Всі',
+                            '0' => 'Чоловіки',
+                            '1' => 'Жінки',
+                        ]
+                    )
+                    ->title('Фільтр по статі')
+                    ->help('Виберіть із списку параметр'),
+                Select::make('sportsman_weight_category')
+                    ->options([
+                            'all' => 'Всі',
+                            ...$weight_category
+                        ]
+                    )
+                    ->empty('Без фільтру')
+                    ->title('Фільтр по статі')
+                    ->help('Виберіть із списку параметр'),
             ])->title('Спортсмени'),
+
+            // Trainer
+
             Layout::rows([
                 Switcher::make('free-switch')
                     ->sendTrueOrFalse()
                     ->placeholder('Шукати у тренерах'),
                 Select::make('select')
-                    ->options([
-                        'index' => 'Всі',
-                        'noindex' => 'аібва віа іі',
-                    ])
+                    ->options($this->combinedArray($all_trainer))
                     ->title('Select tags')
                     ->help('Allow search bots to index'),
             ])->title('Тренери'),
 
+            // Judge
             Layout::rows([
                 Switcher::make('free-switch')
                     ->sendTrueOrFalse()
@@ -137,10 +176,7 @@ class ExampleFilterScreen extends Screen
                     ->name('test')
                     ->title('Дата народження'),
                 Select::make('select')
-                    ->options([
-                        'index' => 'Всі',
-                        'noindex' => 'аібва віа іі',
-                    ])
+                    ->options($this->combinedArray($all_judge))
                     ->title('Select tags')
                     ->help('Allow search bots to index'),
             ])->title('Судді'),
