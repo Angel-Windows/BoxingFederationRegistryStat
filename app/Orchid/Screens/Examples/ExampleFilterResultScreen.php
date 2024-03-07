@@ -107,6 +107,11 @@ class ExampleFilterResultScreen extends Screen
         if ($request->filled('sportsman_weight_category') && $request->input('sportsman_weight_category') !== 'all') {
             $sportsman->where('weight_category', $request->input('sportsman_weight_category'));
         }
+
+        // Weight Category
+        if ($request->filled('sportsman_rank') && $request->input('sportsman_rank') !== 'all') {
+            $sportsman->where('rank', $request->input('sportsman_rank'));
+        }
 //        // City
         if ($request->filled('city-id') && $request->input('city-id') !== 'all') {
             $sportsman = $sportsman->whereJsonContains('address', ['city' => (int)$request->input('city-id')]);
@@ -333,6 +338,7 @@ class ExampleFilterResultScreen extends Screen
             }
         }
 
+        // Sports institution
         if ($request->filled('find-sports_institution') && $request->input('find-sports_institution') === 'on') {
             $sport_institution = new CategorySportsInstitutions();
 
@@ -357,12 +363,13 @@ class ExampleFilterResultScreen extends Screen
             }
         }
 
+        // Sportsman
         if (!array_key_exists('federation', $return_data) && $request->has('find-sportsman')) {
             foreach ($this->get_sportsman($request) as $item) {
                 $return_data['sportsman'][] = new Repository([
                     'name' => $item->name,
                 ]);
-                //sportsman_weight_category
+                // sportsman_weight_category
                 if ($request->input('sportsman_weight_category') === 'all') {
                     if (!array_key_exists('federation_sportsman_weight_category', $more_parameter)) {
                         $more_parameter['federation_sportsman_weight_category'] = [];
@@ -371,6 +378,17 @@ class ExampleFilterResultScreen extends Screen
                         $more_parameter['federation_sportsman_weight_category'][$this->DataTypeInputs['weight_category']['option'][$item->weight_category]] = 0;
                     }
                     ++$more_parameter['federation_sportsman_weight_category'][$this->DataTypeInputs['weight_category']['option'][$item->weight_category]];
+                }
+                // sportsman_rank
+                if ($request->input('sportsman_rank') === 'all') {
+                    if (!array_key_exists('federation_sportsman_rank', $more_parameter)) {
+                        $more_parameter['federation_sportsman_rank'] = [];
+                    }
+
+                    if (!array_key_exists($this->DataTypeInputs['sportsman_rank']['option'][$item->rank], $more_parameter['federation_sportsman_rank'])) {
+                        $more_parameter['federation_sportsman_rank'][$this->DataTypeInputs['sportsman_rank']['option'][$item->rank]] = 0;
+                    }
+                    ++$more_parameter['federation_sportsman_rank'][$this->DataTypeInputs['sportsman_rank']['option'][$item->rank]];
                 }
 
                 //sportsman_gender
@@ -406,6 +424,14 @@ class ExampleFilterResultScreen extends Screen
                     ]);
                 }
 
+            }
+            if (array_key_exists('federation_sportsman_rank', $more_parameter)) {
+                foreach ($more_parameter['federation_sportsman_rank'] as $key => $item) {
+                    $return_data['federation_sportsman_rank'][] = new Repository([
+                        'name' => $key,
+                        'value' => $item,
+                    ]);
+                }
             }
         }
 
@@ -576,6 +602,15 @@ class ExampleFilterResultScreen extends Screen
             if (array_key_exists('federation_sportsman_weight_category', $query)) {
                 $data_add['middle'][] = Layout::accordion([
                     'Вагові категорії' => Layout::table('federation_sportsman_weight_category', [
+                        TD::make('name', 'Назва')
+                            ->width('auto'),
+
+                        TD::make('value', 'Учасники')
+                            ->width('auto'),
+                    ])]);
+            }if (array_key_exists('federation_sportsman_rank', $query)) {
+                $data_add['middle'][] = Layout::accordion([
+                    'Вагові категорії' => Layout::table('federation_sportsman_rank', [
                         TD::make('name', 'Назва')
                             ->width('auto'),
 

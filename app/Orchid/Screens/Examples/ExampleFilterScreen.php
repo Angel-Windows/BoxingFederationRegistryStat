@@ -152,6 +152,11 @@ class ExampleFilterScreen extends Screen
                     ->empty('Без фільтру')
                     ->title('Фільтр по ваговій категорії')
                     ->help('Виберіть із списку параметр'),
+                Select::make('sportsman_rank')
+                    ->options($this->combinedArray($this->DataTypeInputs['sportsman_rank']['option']))
+                    ->empty('Без фільтру')
+                    ->title('Державні, почесні звання, спортивні звання та розряди')
+                    ->help('Виберіть із списку параметр'),
             ])->title('Спортсмени'),
 
             // Trainer
