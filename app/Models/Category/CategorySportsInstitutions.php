@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static pluck(string $string, string $string1)
  * @method static where(string $string, string $string1, $id)
  * @method static whereIn(string $string, $pluck)
+ * @method whereJsonContains(string $string, int[] $array)
+ * @method get()
  */
 class CategorySportsInstitutions extends Model
 {

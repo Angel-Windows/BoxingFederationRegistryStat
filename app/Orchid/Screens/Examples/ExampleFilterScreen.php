@@ -91,8 +91,8 @@ class ExampleFilterScreen extends Screen
     public function layout(): iterable
     {
         $weight_category = [];
-        foreach ($this->DataTypeInputs['weight_category']['option'] as $key=>$dataTypeInput) {
-            if ($dataTypeInput != 'Title'){
+        foreach ($this->DataTypeInputs['weight_category']['option'] as $key => $dataTypeInput) {
+            if ($dataTypeInput != 'Title') {
                 $weight_category[$key] = $dataTypeInput;
             }
         }
@@ -190,70 +190,31 @@ class ExampleFilterScreen extends Screen
 
             ])->title('Спортивні заклади'),
 
+            // Insurance
             Layout::rows([
-                Switcher::make('free-switch')
-                    ->sendTrueOrFalse()
+                Switcher::make('find-insurance')
                     ->placeholder('Шукати у страхових компаніях'),
-
-                Select::make('Адреса')
-                    ->options([
-                        '' => 'Всі',
-                        '2' => 'Житомир',
-                        '1' => 'Львів',
-                    ])
-                    ->title('Select tags')
-                    ->help('Allow search bots to index'),
             ])->title('Страхові компанії'),
 
-
+            // Medical
             Layout::rows([
-                Switcher::make('free-switch')
-                    ->sendTrueOrFalse()
+                Switcher::make('find-medical')
                     ->placeholder('Шукати у медичних закладах'),
-
-                Select::make('Адреса')
-                    ->options([
-                        '2' => 'Всі',
-                        '2' => '3',
-                    ])
-                    ->title('Select tags')
-                    ->help('Allow search bots to index'),
             ])->title('Медичні заклади'),
 
-
+            // School
             Layout::rows([
-
-                Switcher::make('free-switch')
-                    ->sendTrueOrFalse()
+                Switcher::make('find-school')
                     ->placeholder('Шукати у навчальних закладах'),
-
-                Select::make('Адреса')
-                    ->options([
-                        '' => 'Всі',
-                        '2' => 'Житомир',
-                        '1' => 'Львів',
-                    ])
-                    ->title('Select tags')
-                    ->help('Allow search bots to index'),
             ])->title('Навчальні заклади'),
 
-
+            // Fan
             Layout::rows([
-                Switcher::make('free-switch')
-                    ->sendTrueOrFalse()
+                Switcher::make('find-fan')
                     ->placeholder('Шукати у фанах'),
-
-                Select::make('Адреса')
-                    ->options([
-                        '' => 'Всі',
-                        '2' => 'Житомир',
-                        '1' => 'Львів',
-                    ])
-                    ->title('Select tags')
-                    ->help('Allow search bots to index'),
             ])->title('Фани'),
 
-
+            //city
             Layout::rows([
                 Switcher::make('find-city')
                     ->placeholder('Шукати по адресі'),

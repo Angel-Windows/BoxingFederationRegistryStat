@@ -44,18 +44,18 @@ class PlatformProvider extends OrchidServiceProvider
 //                ->route('platform.example')
 //                ->badge(fn() => 6),
 
-            Menu::make('Form Elements')
-                ->icon('bs.card-list')
-                ->route('platform.example.fields')
-                ->active('*/examples/form/*'),
+//            Menu::make('Form Elements')
+//                ->icon('bs.card-list')
+//                ->route('platform.example.fields')
+//                ->active('*/examples/form/*'),
 
-            Menu::make('Overview Layouts')
-                ->icon('bs.window-sidebar')
-                ->route('platform.example.layouts'),
-
-            Menu::make('Grid System')
-                ->icon('bs.columns-gap')
-                ->route('platform.example.grid'),
+//            Menu::make('Overview Layouts')
+//                ->icon('bs.window-sidebar')
+//                ->route('platform.example.layouts'),
+//
+//            Menu::make('Grid System')
+//                ->icon('bs.columns-gap')
+//                ->route('platform.example.grid'),
 
             Menu::make('Вибірка')
                 ->icon('bs.search')
@@ -70,11 +70,11 @@ class PlatformProvider extends OrchidServiceProvider
             Menu::make('Тренери')
                 ->icon('fa.trainers')
                 ->route('platform.example.trainer'),
-
-            Menu::make('Cards')
-                ->icon('bs.card-text')
-                ->route('platform.example.cards')
-                ->divider(),
+//
+//            Menu::make('Cards')
+//                ->icon('bs.card-text')
+//                ->route('platform.example.cards')
+//                ->divider(),
 
             Menu::make(__('Users'))
                 ->icon('bs.people')

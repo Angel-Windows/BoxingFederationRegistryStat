@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static find($id)
  * @method static pluck(string $string, string $string1)
  * @method static where(string $string, string $string1, $id)
+ * @method whereJsonContains(string $string, int[] $array)
+ * @method get()
  */
 class CategorySchool extends Model
 {

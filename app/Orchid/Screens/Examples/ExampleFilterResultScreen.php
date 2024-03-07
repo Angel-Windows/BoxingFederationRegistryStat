@@ -2,7 +2,11 @@
 
 namespace App\Orchid\Screens\Examples;
 
+use App\Models\Category\CategoryFunZone;
+use App\Models\Category\CategoryInsurance;
 use App\Models\Category\CategoryJudge;
+use App\Models\Category\CategoryMedical;
+use App\Models\Category\CategorySchool;
 use App\Models\Category\CategorySportsInstitutions;
 use App\Models\Category\CategorySportsman;
 use App\Models\Category\CategoryTrainer;
@@ -404,6 +408,74 @@ class ExampleFilterResultScreen extends Screen
 
             }
         }
+
+        // Insurance
+        if ($request->filled('find-insurance') && $request->input('find-insurance') === 'on') {
+            $sport_insurance = new CategoryInsurance();
+
+            // City
+            if ($request->filled('city-id') && $request->input('city-id') !== 'all') {
+                $sport_insurance = $sport_insurance->whereJsonContains('address', ['city' => (int)$request->input('city-id')]);
+            }
+            $sport_insurance = $sport_insurance->get();
+
+            foreach ($sport_insurance as $item) {
+                $return_data['insurance'][] = new Repository([
+                    'name' => $item->name,
+                ]);
+            }
+        }
+
+        // Medical
+        if ($request->filled('find-medical') && $request->input('find-medical') === 'on') {
+            $sport_insurance = new CategoryMedical();
+
+            // City
+            if ($request->filled('city-id') && $request->input('city-id') !== 'all') {
+                $sport_insurance = $sport_insurance->whereJsonContains('address', ['city' => (int)$request->input('city-id')]);
+            }
+            $sport_insurance = $sport_insurance->get();
+
+            foreach ($sport_insurance as $item) {
+                $return_data['medical'][] = new Repository([
+                    'name' => $item->name,
+                ]);
+            }
+        }
+
+        // School
+        if ($request->filled('find-school') && $request->input('find-school') === 'on') {
+            $sport_insurance = new CategorySchool();
+
+            // City
+            if ($request->filled('city-id') && $request->input('city-id') !== 'all') {
+                $sport_insurance = $sport_insurance->whereJsonContains('address', ['city' => (int)$request->input('city-id')]);
+            }
+            $sport_insurance = $sport_insurance->get();
+
+            foreach ($sport_insurance as $item) {
+                $return_data['school'][] = new Repository([
+                    'name' => $item->name,
+                ]);
+            }
+        }
+
+        // Fan
+        if ($request->filled('find-fan') && $request->input('find-fan') === 'on') {
+            $sport_insurance = new CategoryFunZone();
+
+            // City
+            if ($request->filled('city-id') && $request->input('city-id') !== 'all') {
+                $sport_insurance = $sport_insurance->whereJsonContains('address', ['city' => (int)$request->input('city-id')]);
+            }
+            $sport_insurance = $sport_insurance->get();
+
+            foreach ($sport_insurance as $item) {
+                $return_data['fan'][] = new Repository([
+                    'name' => $item->name,
+                ]);
+            }
+        }
         return $this->result_query = $return_data;
     }
 
@@ -527,6 +599,7 @@ class ExampleFilterResultScreen extends Screen
                 ChartBarExample::make('judge_qualification', 'Список кваліфікацій'),
             ])->vertical()->title('Судді');
         }
+
         if (array_key_exists('judge', $query)) {
             $return_data[] = Layout::block([
                 Layout::accordion([
@@ -536,6 +609,7 @@ class ExampleFilterResultScreen extends Screen
                     ])]),
             ])->vertical()->title('Судді');
         }
+
         if (array_key_exists('sports_institution', $query)) {
             $return_data[] = Layout::block([
                 Layout::accordion([
@@ -548,6 +622,46 @@ class ExampleFilterResultScreen extends Screen
             ])->vertical()->title('Спортивні заклади');
         }
 
+        if (array_key_exists('insurance', $query)) {
+            $return_data[] = Layout::block([
+                Layout::accordion([
+                    'Страхові компанії' => Layout::table('insurance', [
+                        TD::make('name')
+                            ->width('auto'),
+                    ])]),
+            ])->vertical()->title('Судді');
+        }
+        // Medical
+        if (array_key_exists('medical', $query)) {
+            $return_data[] = Layout::block([
+                Layout::accordion([
+                    'Медичні заклади' => Layout::table('medical', [
+                        TD::make('name')
+                            ->width('auto'),
+                    ])]),
+            ])->vertical()->title('Медичні заклади');
+        }
+
+        //School
+        if (array_key_exists('school', $query)) {
+            $return_data[] = Layout::block([
+                Layout::accordion([
+                    'Навчальні заклади' => Layout::table('school', [
+                        TD::make('name')
+                            ->width('auto'),
+                    ])]),
+            ])->vertical()->title('Навчальні заклади');
+        }
+        //fan
+        if (array_key_exists('fan', $query)) {
+            $return_data[] = Layout::block([
+                Layout::accordion([
+                    'Фан зони' => Layout::table('fan', [
+                        TD::make('name')
+                            ->width('auto'),
+                    ])]),
+            ])->vertical()->title('Фан зони');
+        }
         return $return_data;
     }
 }
