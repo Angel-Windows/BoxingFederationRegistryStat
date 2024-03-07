@@ -389,6 +389,14 @@ trait DataTypeTrait
                 'Спортивний суддя Національної категорії',
             ],
         ],
+
+        'trainer_qualification' => [
+            'option' => [
+                'Вища категорія',
+                'Перша категорія',
+                'Друга категорія',
+            ],
+        ],
         'address_birth' => [
             'name' => 'address_birth',
             'tag' => 'input',

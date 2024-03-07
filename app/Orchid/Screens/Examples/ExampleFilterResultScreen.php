@@ -3,11 +3,13 @@
 namespace App\Orchid\Screens\Examples;
 
 use App\Models\Category\CategoryJudge;
+use App\Models\Category\CategorySportsInstitutions;
 use App\Models\Category\CategorySportsman;
 use App\Models\Category\CategoryTrainer;
 use App\Models\Category\Operations\TransactionCategory;
 use App\Models\Class\BoxFederation;
 use App\Models\Employees\EmployeesFederation;
+use App\Models\Linking\LinkingMembers;
 use App\Orchid\Layouts\ChartsLayout;
 use App\Orchid\Layouts\Examples\ChartBarExample;
 use App\Orchid\Layouts\Examples\ExampleElements;
@@ -60,8 +62,53 @@ class ExampleFilterResultScreen extends Screen
 //
 //        return Redirect::route('platform.example.filter');
     }
-    private function get_sportsman (){
 
+    private $sportsman = null;
+
+    private function get_sportsman($request): \Illuminate\Database\Eloquent\Collection|array|null
+    {
+        if ($this->sportsman) {
+            return $this->sportsman;
+        }
+
+        $sportsman = CategorySportsman::query();
+
+        // ID
+        if ($request->filled('sportsman_id') && $request->input('sportsman_id') !== 'all') {
+            $sportsman->where('id', $request->input('sportsman_id'));
+        }
+
+        // Birthday
+        if ($request->filled('sportsman_birthday')) {
+            $sportsman_date = $request->input('sportsman_birthday');
+
+            $start_date = $sportsman_date['start'] ?? null;
+            $end_date = $sportsman_date['end'] ?? null;
+
+            if ($start_date && $end_date) {
+                $sportsman->whereBetween('birthday', [$start_date, $end_date]);
+            } elseif ($start_date) {
+                $sportsman->where('birthday', '>=', $start_date);
+            } elseif ($end_date) {
+                $sportsman->where('birthday', '<=', $end_date);
+            }
+        }
+
+        // Gender
+        if ($request->filled('sportsman_gender') && $request->input('sportsman_gender') !== 'all') {
+            $sportsman->where('gender', $request->input('sportsman_gender'));
+        }
+
+        // Weight Category
+        if ($request->filled('sportsman_weight_category') && $request->input('sportsman_weight_category') !== 'all') {
+            $sportsman->where('weight_category', $request->input('sportsman_weight_category'));
+        }
+//        // City
+        if ($request->filled('city-id') && $request->input('city-id') !== 'all') {
+            $sportsman = $sportsman->whereJsonContains('address', ['city' => (int)$request->input('city-id')]);
+        }
+
+        return $this->sportsman = $sportsman->get();
     }
 
     private array $result_query = [];
@@ -99,51 +146,32 @@ class ExampleFilterResultScreen extends Screen
 
             if ($request->filled('federation') && $request->input('federation') !== 'all') {
                 $federationQuery->where('id', $request->input('federation'));
+                // City
+                if ($request->filled('city-id') && $request->input('city-id') !== 'all') {
+                    $federationQuery = $federationQuery->whereJsonContains('address', ['city' => (int)$request->input('city-id')]);
+                }
+
             }
 
             $federations = $federationQuery->get();
             $return_federation_all_data = ['sportsman' => 0, 'trainer' => 0, 'employees' => 0];
 
             foreach ($federations as $federation) {
-                $sportsman = (new CategorySportsman())->where('federation', $federation->id);
+//                $sportsman = (new CategorySportsman())->where('federation', $federation->id);
                 $trainer = (new CategoryTrainer())->where('federation', $federation->id);
                 $employees = (new EmployeesFederation())->where('federation_id', $federation->id);
 
                 //find_sportsman
+                $sportsman = $this->get_sportsman($request);
+                $filter_sportsman = [];
+                foreach ($sportsman as $item) {
+                    if ($item->federation === $federation->id) {
+                        $filter_sportsman[] = $item;
+                    }
+                }
                 if ($request->has('find-sportsman')) {
 
-                    // ID
-                    if (($sportsman_id = $request->input('sportsman_id')) !== 'all') {
-                        $sportsman = $sportsman->where('id', $sportsman_id);
-                    }
-
-                    // Birthday
-                    if ($request->has('sportsman_birthday')) {
-                        $sportsman_date = $request->input('sportsman_birthday');
-
-                        $start_date = $sportsman_date['start'] ?? null;
-                        $end_date = $sportsman_date['end'] ?? null;
-
-                        if ($start_date && $end_date) {
-                            $sportsman = $sportsman->whereBetween('birthday', [$start_date, $end_date]);
-                        } elseif ($start_date) {
-                            $sportsman = $sportsman->where('birthday', '>=', $start_date);
-                        } elseif ($end_date) {
-                            $sportsman = $sportsman->where('birthday', '<=', $end_date);
-                        }
-                    }
-
-                    // Gender
-                    if (($request->input('sportsman_gender') != null) && ($sportsman_gender = $request->input('sportsman_gender')) !== 'all') {
-                        $sportsman = $sportsman->where('gender', $sportsman_gender);
-                    }
-
-                    // Weight Category
-                    if (($request->input('sportsman_weight_category') != null) && ($sportsman_weight_category = $request->input('sportsman_weight_category')) !== 'all') {
-                        $sportsman = $sportsman->where('weight_category', $sportsman_weight_category);
-                    }
-                    $sportsman = $sportsman->get();
-                    foreach ($sportsman as $item) {
+                    foreach ($filter_sportsman as $item) {
 
                         //sportsman_weight_category
                         if ($request->input('sportsman_weight_category') === 'all') {
@@ -171,6 +199,7 @@ class ExampleFilterResultScreen extends Screen
                             }
                         }
                     }
+
                     if (array_key_exists('federation_sportsman_gender', $more_parameter)) {
                         $return_data['federation_sportsman_gender'] = [
                             [
@@ -188,18 +217,22 @@ class ExampleFilterResultScreen extends Screen
                                 'value' => $item,
                             ]);
                         }
-
                     }
-                    $sportsmanCount = count($sportsman);
-                } else {
-                    $sportsmanCount = $sportsman->count();
                 }
-
+                $sportsmanCount = count($filter_sportsman);
                 // Trainer
                 if ($request->has('find-trainer')) {
                     // ID
                     if (($trainer_id = $request->input('trainer_id')) !== 'all') {
                         $trainer = $trainer->where('id', $trainer_id);
+                    }
+                    // Qualification
+                    if (($qualification_id = $request->input('trainer_qualification')) !== 'all') {
+                        $trainer = $trainer->where('qualification', $qualification_id);
+                    }
+                    // City
+                    if ($request->filled('city-id') && $request->input('city-id') !== 'all') {
+                        $trainer = $trainer->whereJsonContains('address', ['city' => (int)$request->input('city-id')]);
                     }
 
                 }
@@ -250,10 +283,14 @@ class ExampleFilterResultScreen extends Screen
             }
 
         }
+
         // Judge
         if ($request->filled('find-judge') && $request->input('find-judge') === 'on') {
             $judge = new CategoryJudge;
-
+            // City
+            if ($request->filled('city-id') && $request->input('city-id') !== 'all') {
+                $judge = $judge->whereJsonContains('address', ['city' => (int)$request->input('city-id')]);
+            }
             if ($request->filled('judge-select_qualification')) {
                 if ($request->input('judge-select_qualification') == 'all') {
                     $groupedCategories = $judge->select('qualification', DB::raw('count(*) as total'))
@@ -292,7 +329,81 @@ class ExampleFilterResultScreen extends Screen
             }
         }
 
+        if ($request->filled('find-sports_institution') && $request->input('find-sports_institution') === 'on') {
+            $sport_institution = new CategorySportsInstitutions();
 
+            // City
+            if ($request->filled('city-id') && $request->input('city-id') !== 'all') {
+                $sport_institution = $sport_institution->whereJsonContains('address', ['city' => (int)$request->input('city-id')]);
+            }
+            $sport_institution = $sport_institution->get();
+
+            foreach ($sport_institution as $item) {
+                $linking = LinkingMembers::where('category_id', $item->id);
+
+                if ($request->filled('trainer_id') && ($request->filled('trainer_id') != 'all')) {
+                    $linking = $linking->where('member_id', $request->input('trainer_id'));
+                }
+                if (($sport_institution_count = $linking->count()) !== 0) {
+                    $return_data['sports_institution'][] = new Repository([
+                        'name' => $item->name,
+                        'value' => $sport_institution_count,
+                    ]);
+                }
+            }
+        }
+
+        if (!array_key_exists('federation', $return_data) && $request->has('find-sportsman')) {
+            foreach ($this->get_sportsman($request) as $item) {
+                $return_data['sportsman'][] = new Repository([
+                    'name' => $item->name,
+                ]);
+                //sportsman_weight_category
+                if ($request->input('sportsman_weight_category') === 'all') {
+                    if (!array_key_exists('federation_sportsman_weight_category', $more_parameter)) {
+                        $more_parameter['federation_sportsman_weight_category'] = [];
+                    }
+                    if (!array_key_exists($this->DataTypeInputs['weight_category']['option'][$item->weight_category], $more_parameter['federation_sportsman_weight_category'])) {
+                        $more_parameter['federation_sportsman_weight_category'][$this->DataTypeInputs['weight_category']['option'][$item->weight_category]] = 0;
+                    }
+                    ++$more_parameter['federation_sportsman_weight_category'][$this->DataTypeInputs['weight_category']['option'][$item->weight_category]];
+                }
+
+                //sportsman_gender
+                if ($request->input('sportsman_gender') === 'all') {
+                    if (!array_key_exists('federation_sportsman_gender', $more_parameter)) {
+                        $more_parameter['federation_sportsman_gender'] = [
+                            'man' => 0,
+                            'woman' => 0,
+                        ];
+                    }
+                    if ($item->gender === 0) {
+                        ++$more_parameter['federation_sportsman_gender']['man'];
+                    } else {
+                        ++$more_parameter['federation_sportsman_gender']['woman'];
+                    }
+                }
+            }
+            if (array_key_exists('federation_sportsman_gender', $more_parameter)) {
+                $return_data['federation_sportsman_gender'] = [
+                    [
+                        'name' => 'federation_sportsman_gender',
+                        'values' => [$more_parameter['federation_sportsman_gender']['man'], $more_parameter['federation_sportsman_gender']['woman']],
+                        'labels' => ['Чоловіки', 'Жінки'],
+                    ],
+                ];
+            }
+
+            if (array_key_exists('federation_sportsman_weight_category', $more_parameter)) {
+                foreach ($more_parameter['federation_sportsman_weight_category'] as $key => $item) {
+                    $return_data['federation_sportsman_weight_category'][] = new Repository([
+                        'name' => $key,
+                        'value' => $item,
+                    ]);
+                }
+
+            }
+        }
         return $this->result_query = $return_data;
     }
 
@@ -370,7 +481,7 @@ class ExampleFilterResultScreen extends Screen
                     'Спортсмени' => Layout::table('federation', [
                         TD::make('name', 'Федерація')
                             ->width('auto'),
-                        TD::make('sportsman', 'Спортсмени (Ч/Ж)')
+                        TD::make('sportsman', 'Спортсмени')
                             ->width('auto'),
                         TD::make('trainer', 'Тренери')
                             ->width('auto'),
@@ -379,6 +490,36 @@ class ExampleFilterResultScreen extends Screen
                         ...$data_add['table']
                     ])]),
             ])->vertical()->title('Федерації');
+        }
+
+        if (array_key_exists('sportsman', $query)) {
+            $data_add = [
+                'top' => [],
+                'middle' => [],
+
+            ];
+            if (array_key_exists('federation_sportsman_gender', $query)) {
+                $data_add['top'][] = ChartsLayout::make('federation_sportsman_gender', 'Стать');
+            }
+            if (array_key_exists('federation_sportsman_weight_category', $query)) {
+                $data_add['middle'][] = Layout::accordion([
+                    'Вагові категорії' => Layout::table('federation_sportsman_weight_category', [
+                        TD::make('name', 'Назва')
+                            ->width('auto'),
+
+                        TD::make('value', 'Учасники')
+                            ->width('auto'),
+                    ])]);
+            }
+            $return_data[] = Layout::block([
+                ...$data_add['top'],
+                ...$data_add['middle'],
+                Layout::accordion([
+                    'Спортсмени' => Layout::table('sportsman', [
+                        TD::make('name', 'Федерація')
+                            ->width('auto'),
+                    ])]),
+            ])->vertical()->title('Спортсмени');
         }
 
         if (array_key_exists('judge_qualification', $query)) {
@@ -394,6 +535,17 @@ class ExampleFilterResultScreen extends Screen
                             ->width('auto'),
                     ])]),
             ])->vertical()->title('Судді');
+        }
+        if (array_key_exists('sports_institution', $query)) {
+            $return_data[] = Layout::block([
+                Layout::accordion([
+                    'Спортивні заклади' => Layout::table('sports_institution', [
+                        TD::make('name', 'Назва')
+                            ->width('auto'),
+                        TD::make('value', 'Кількість')
+                            ->width('auto'),
+                    ])]),
+            ])->vertical()->title('Спортивні заклади');
         }
 
         return $return_data;

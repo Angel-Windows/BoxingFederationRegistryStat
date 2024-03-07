@@ -163,6 +163,10 @@ class ExampleFilterScreen extends Screen
                     ->options($this->combinedArray($all_trainer))
                     ->title('Тренер')
                     ->help('Виберіть зі списку тренера'),
+                Select::make('trainer_qualification')
+                    ->options($this->combinedArray($this->DataTypeInputs['trainer_qualification']['option']))
+                    ->title('Кваліфікація')
+                    ->help('Виберіть зі списку кваліфікацію'),
             ])->title('Тренери'),
 
             // Judge
@@ -179,19 +183,11 @@ class ExampleFilterScreen extends Screen
                     ->help('Allow search bots to index'),
             ])->title('Судді'),
 
+            // Sports Institutions
             Layout::rows([
-                Switcher::make('find-sport_institution')
-                    ->sendTrueOrFalse()
+                Switcher::make('find-sports_institution')
                     ->placeholder('Шукати у спортивних закладах'),
 
-                Select::make('Адреса')
-                    ->options([
-                        '' => 'Всі',
-                        '2' => 'Житомир',
-                        '1' => 'Львів',
-                    ])
-                    ->title('Select tags')
-                    ->help('Allow search bots to index'),
             ])->title('Спортивні заклади'),
 
             Layout::rows([
@@ -259,16 +255,12 @@ class ExampleFilterScreen extends Screen
 
 
             Layout::rows([
-                Switcher::make('free-switch')
-                    ->sendTrueOrFalse()
+                Switcher::make('find-city')
                     ->placeholder('Шукати по адресі'),
-                Select::make('Адреса')
-                    ->options([
-                        '' => 'Всі',
-                        ...$this->city_arr
-                    ])
+                Select::make('city-id')
+                    ->options($this->combinedArray($this->city_arr))
                     ->title('Select tags')
-                    ->help('Allow search bots to index'),
+                    ->help('Виберіть адесу із списку'),
             ])->title('Адреса'),
 
             Layout::rows([

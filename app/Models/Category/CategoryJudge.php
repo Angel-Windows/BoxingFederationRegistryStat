@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method where(string $string, mixed $id)
  * @method get()
  * @method select(string $string, \Illuminate\Contracts\Database\Query\Expression|\Illuminate\Database\Query\Expression $raw)
+ * @method whereJsonContains(string $string, int[] $array)
  */
 class CategoryJudge extends Model
 {
