@@ -12,8 +12,9 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-Route::get('/', function () {
-    return view('welcome');
+Route::get('/', static function () {
+//    return view('welcome');
+    return redirect()->route('platform.main');
 });
 //Route::post('/admin/examples/filter/buttonClickTest', function (Request $request) {
 //    dd($request);
